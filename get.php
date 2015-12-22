@@ -1,6 +1,6 @@
 <?php
 
-include 'sqlite.php';
+include 'func/sqlite.php';
 
 // Returns json formatted Object like this:
 /*
