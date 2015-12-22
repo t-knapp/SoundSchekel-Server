@@ -1,6 +1,6 @@
 <?php
 
-define("ffmpeg", "~/bin/ffmpeg");
+define("ffmpeg", "/usr/bin/ffmpeg");
 
 // Returns duration of $mp3File in mm:ss.mm
 function getDuration($mp3File){

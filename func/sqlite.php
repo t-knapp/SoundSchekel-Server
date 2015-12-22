@@ -146,7 +146,7 @@ class DB {
       echo "</pre>";
   }
 
-  private $dsn = "sqlite:db.sqlite3";
+  private $dsn = "sqlite:db/db.sqlite3";
   private $dbh;
   
   private function __construct(){
