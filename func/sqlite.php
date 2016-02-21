@@ -21,6 +21,13 @@ CREATE TABLE "sound" (
     "title" TEXT NOT NULL,
     "length" TEXT NOT NULL
 )
+
+-- Describe DELETES
+CREATE TABLE "deletes" (
+    "sid" INTEGER PRIMARY KEY NOT NULL,
+    "seq" INTEGER NOT NULL
+)
+
 */
 
 /*
@@ -91,10 +98,22 @@ class DB {
       return $this->dbh->query($sql)->fetchAll(PDO::FETCH_ASSOC);
   }
   
-  public function delete($soundId){
-      $sql = 'DELETE FROM sequence WHERE sid = :sid';
+  public function findDeleteBySeqGreaterThan($seq){
+      $sql = "SELECT * FROM deletes WHERE seq > {$seq};";
+      return $this->dbh->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+  }
+  
+  public function delete($soundId){      
+      $sql = 'DELETE FROM sound WHERE sid = :sid';
       $stmt = $this->dbh->prepare($sql);
       $stmt->bindParam(":sid", $soundId, PDO::PARAM_INT);
+      $stmt->execute();
+      
+      $sql = 'INSERT INTO deletes(sid, seq) VALUES(:sid, :seq)';
+      $stmt = $this->dbh->prepare($sql);
+      $seq = $this->getNextSeq();
+      $stmt->bindParam(":sid", $soundId, PDO::PARAM_INT);
+      $stmt->bindParam(":seq", $seq,     PDO::PARAM_INT);
       $stmt->execute();
   }
   

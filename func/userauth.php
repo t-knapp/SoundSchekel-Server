@@ -7,7 +7,7 @@
         //strong protection on the passwords.
         
         private $bcryptOptions = [ 'salt' => "@#6$%^&*THIS$%^&IS(&^A%^&LARGE^&**%^&SALT-8,/7%^&*" ];
-        private $dbfile = "sqlite:db/userauth.db";
+        private $dbfile = "sqlite:/home/nuke/data/www/soundschekel/userauth.db";
         private $db = null;
         
         public function dbinit() {

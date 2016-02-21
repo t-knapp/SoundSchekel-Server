@@ -97,7 +97,7 @@ if (isset($_POST['user'])) {
         <?php } ?>
         <!-- Content Start -->
         <?php 
-        if(isset($action)){
+        if($auth->isAuthenticated() && isset($action)){
             include "controller/{$action}.php";
         }
         ?>

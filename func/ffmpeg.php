@@ -1,6 +1,6 @@
 <?php
 
-define("ffmpeg", "/usr/bin/ffmpeg");
+define("ffmpeg", "~/bin/ffmpeg");
 
 // Returns duration of $mp3File in mm:ss.mm
 function getDuration($mp3File){
@@ -9,6 +9,18 @@ function getDuration($mp3File){
     return $output[0];
 }
 
+
+// Metadata
+function metadata($target_path, $key, $title, $finalPathName){
+    $output = array();
+    $code = 1337;
+    exec(ffmpeg . " -i {$target_path}  -metadata title='{$title}' -metadata artist='Soundschekel' -metadata album='{$key}' {$finalPathName}.mp3", $output, $code);
+    
+    if($code !== 0)
+        return false;
+
+    return rename($finalPathName . ".mp3", $finalPathName);
+}
 
 // Returns array of volumes
 function getVolumes($mp3File){

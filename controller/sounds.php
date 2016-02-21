@@ -9,6 +9,8 @@ $arSounds = $db->findAll();
 
 $action = $_GET['sounds'];
 
+$dirMP3 = 'sound/';
+
 if($action === 'add') {
 ?>
 <script>
@@ -45,12 +47,12 @@ if($action === 'add') {
     }
 
     //File
-    $dirMP3 = 'sound/';
+    //$dirMP3 = 'sound/';
     $target_path = $dirMP3 . "_tmp"; 
     if(move_uploaded_file($_FILES['file']['tmp_name'], $target_path)) {
         $length = getDuration($target_path);
 
-        //Normalize and rename
+        //Normalize
         normalize($target_path);
         rename($target_path . ".mp3", $target_path);
     } else {
@@ -67,12 +69,29 @@ if($action === 'add') {
     $lastId = $db->insertSound($seq, $key, $title, $length);
 
     //Delete from DB if file problem
-    if(!rename($target_path, $dirMP3 . $lastId)){
+    if(!metadata($target_path, $key, $title, $dirMP3 . $lastId)){
         $db->delete($lastId);
         die('Can not rename file.');
     }
-    
+
     echo "LastInsertId: $lastId" . PHP_EOL;
+
+} else if($action === 'delete'){
+    echo '<h4>Delete</h4>';
+
+    $sid = $_GET['sid'];
+    echo '<h5>' .$sid . '</h5>';
+    
+    $db->delete($sid);
+    
+    if(file_exists($dirMP3 . $sid)){
+        if(unlink($dirMP3 . $sid))
+            echo "Datei entfernt.";
+        else 
+            echo "Datei kann nicht entfernt werden.";
+    } else {
+        echo "Datei existiert nicht mehr.";
+    }
 ?>
 <?php
 } else {
@@ -81,7 +100,7 @@ if($action === 'add') {
     <tr><th>sid</th><th>seq</th><th>key</th><th>title</th><th>length</th><th></th></tr>
     <?php
     foreach($arSounds as $s){
-        echo "<tr><td>{$s['sid']}</td><td>{$s['seq']}</td><td>{$s['key']}</td><td>{$s['title']}</td><td>{$s['length']}</td><td>DEL</td></tr>" . PHP_EOL;
+        echo "<tr><td>{$s['sid']}</td><td>{$s['seq']}</td><td>{$s['key']}</td><td>{$s['title']}</td><td>{$s['length']}</td><td><a href=\"?sounds=delete&sid={$s['sid']}\">DEL</a></td></tr>" . PHP_EOL;
     }
     ?>
 </table>
