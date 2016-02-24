@@ -43,7 +43,8 @@ function getVolumes($mp3File){
 // Creates file with normalized postfix.
 function adjustVolume($mp3File, $gain){
     $output = array();
-    exec(ffmpeg . " -i {$mp3File} -af volume={$gain}dB {$mp3File}.mp3", $output);
+    // mono: -ac 1
+    exec(ffmpeg . " -i {$mp3File} -ac 1 -af volume={$gain}dB {$mp3File}.mp3", $output);
     return $output;
 }
 
