@@ -2,14 +2,14 @@
 
 namespace AppBundle\Controller;
 
+use AppBundle\Entity\Sequence;
 use AppBundle\Entity\Sound;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-use FOS\RestBundle\Controller\Annotations as Rest;
+use AppBundle\Repository\SequenceRepository;
 use FOS\RestBundle\Controller\FOSRestController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use FOS\RestBundle\View\View;
+use FOS\RestBundle\Controller\Annotations as Rest;
 
 class DefaultController extends FOSRestController
 {
@@ -20,7 +20,7 @@ class DefaultController extends FOSRestController
     {
         $restresult = $this->getDoctrine()->getRepository('AppBundle:Sound')->findAll();
         if ($restresult === null) {
-            return new View("there are no sounds exist", Response::HTTP_NOT_FOUND);
+            return new View("there are no sounds", Response::HTTP_NOT_FOUND);
         }
         return $restresult;
     }
@@ -42,22 +42,21 @@ class DefaultController extends FOSRestController
      */
     public function postAction(Request $request)
     {
-        $data = new Sound();
-        $seq = $request->get('seq');
         $category = $request->get('category');
         $title = $request->get('title');
         $length = $request->get('length');
-        if(empty($seq) || empty($category) || empty($title) || empty($length)) {
-            return new View("NULL VALUES ARE NOT ALLOWED", Response::HTTP_NOT_ACCEPTABLE);
+        if(empty($category) || empty($title) || empty($length)) {
+            return new View("bad request", Response::HTTP_BAD_REQUEST);
         }
-        $data->setSeq($seq);
-        $data->setCategory($category);
-        $data->setTitle($title);
-        $data->setLength($length);
+        $newSound = new Sound();
+        $newSound->setSeq($this->getNextSequenceValue());
+        $newSound->setCategory($category);
+        $newSound->setTitle($title);
+        $newSound->setLength($length);
         $em = $this->getDoctrine()->getManager();
-        $em->persist($data);
+        $em->persist($newSound);
         $em->flush();
-        return new View("Sound Added Successfully", Response::HTTP_CREATED);
+        return new View("sound added", Response::HTTP_CREATED);
     }
 
     /**
@@ -75,5 +74,13 @@ class DefaultController extends FOSRestController
             $sn->flush();
         }
         return new View("deleted successfully", Response::HTTP_OK);
+    }
+
+    private function getNextSequenceValue()
+    {
+        $manager = $this->getDoctrine()->getManager();
+        /** @var $repo SequenceRepository */
+        $repo = $manager->getRepository(Sequence::class);
+        return $repo->getNextValue();
     }
 }
