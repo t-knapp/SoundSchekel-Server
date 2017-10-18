@@ -45,6 +45,7 @@ class DefaultController extends FOSRestController
         $category = $request->get('category');
         $title = $request->get('title');
         $length = $request->get('length');
+        $uploadedSound = $request->files->get('sound');
         if(empty($category) || empty($title) || empty($length)) {
             return new View("bad request", Response::HTTP_BAD_REQUEST);
         }
@@ -56,7 +57,9 @@ class DefaultController extends FOSRestController
         $em = $this->getDoctrine()->getManager();
         $em->persist($newSound);
         $em->flush();
-        return new View("sound added", Response::HTTP_CREATED);
+        $soundPath = $this->container->getParameter('sound_path');
+        $uploadedSound->move($soundPath, $newSound->getId());
+        return new View("sound added. Id: " . $newSound->getId(), Response::HTTP_CREATED);
     }
 
     /**
