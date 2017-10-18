@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use FOS\RestBundle\View\View;
 use FOS\RestBundle\Controller\Annotations as Rest;
+use AppBundle\Service\MessageGenerator;
 
 class DefaultController extends FOSRestController
 {
@@ -32,7 +33,8 @@ class DefaultController extends FOSRestController
     {
         $singleresult = $this->getDoctrine()->getRepository('AppBundle:Sound')->find($id);
         if ($singleresult === null) {
-            return new View("sound not found", Response::HTTP_NOT_FOUND);
+            $messageGenerator = $this->container->get('app.message_generator');
+            return new View("sound not found" . $messageGenerator->getHappyMessage(), Response::HTTP_NOT_FOUND);
         }
         return $singleresult;
     }
