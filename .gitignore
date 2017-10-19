@@ -17,5 +17,7 @@ app/sqlite.db
 /vendor/
 /web/bundles/
 
+.web-server-pid
+
 .idea/
 .idea/*

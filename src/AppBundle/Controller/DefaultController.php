@@ -29,11 +29,10 @@ class DefaultController extends FOSRestController
     /**
      * @Rest\Get("/sound/{id}")
      */
-    public function idAction($id)
+    public function idAction($id, MessageGenerator $messageGenerator)
     {
         $singleresult = $this->getDoctrine()->getRepository('AppBundle:Sound')->find($id);
         if ($singleresult === null) {
-            $messageGenerator = $this->container->get('app.message_generator');
             return new View("sound not found" . $messageGenerator->getHappyMessage(), Response::HTTP_NOT_FOUND);
         }
         return $singleresult;
