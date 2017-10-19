@@ -1,3 +1,5 @@
+app/sqlite.db
+/app/sqlite.db
 /app/config/parameters.yml
 /build/
 /phpunit.xml
