@@ -15,7 +15,7 @@ class SoundFileManipulatorFFMPEG
     public function normalize($inputFilePath, $outputFilePath) {
         $meanVolume = $this->getMeanVolume($inputFilePath);
         $gain = $this->calculateGainValue($meanVolume);
-        $this->adjustVolume($inputFilePath, $gain, $outputFilePath);
+        return $this->adjustVolume($inputFilePath, $gain, $outputFilePath);
     }
 
     // TODO: Return Class (Value and Success)
@@ -121,7 +121,7 @@ class ProcessResult
     }
 
     /**
-     * @return string Output of Process
+     * @return string|null Output of Process
      */
     public function getOutput() {
         return $this->output;

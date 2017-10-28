@@ -60,19 +60,24 @@ class DefaultController extends FOSRestController
         $metadataAppliedSoundFilePath = $this->getMetadataAppliedSoundFilePath();
 
         $getDurationResult = $ffmpeg->getDuration($uploadedSoundFilePath);
-        if(!$getDurationResult->isSuccessful())
+        if(!$getDurationResult->isSuccessful()) {
+            unlink($uploadedSoundFilePath);
             return new View("length processing of sound failed", Response::HTTP_BAD_REQUEST);
+        }
         $length = $getDurationResult->getOutput();
 
-        $ffmpeg->normalize($uploadedSoundFilePath, $normalizedSoundFileName);
+        if(!$this->normalize($uploadedSoundFilePath, $normalizedSoundFileName, $ffmpeg)) {
+            return new View("could not set metadata", Response::HTTP_BAD_REQUEST);
+        }
 
         $metaData = new SoundFileMetadata($category, $title);
-        $ffmpeg->setMetadata($normalizedSoundFileName, $metaData, $metadataAppliedSoundFilePath);
+        if(!$this->setMetadata($normalizedSoundFileName, $metaData, $metadataAppliedSoundFilePath, $ffmpeg)) {
+            unlink($uploadedSoundFilePath);
+            return new View("could not set metadata", Response::HTTP_BAD_REQUEST);
+        }
 
         $newSound = $this->createSound($category, $title, $length, $this->getNextSequenceValue());
-        $em = $this->getDoctrine()->getManager();
-        $em->persist($newSound);
-        $em->flush();
+        $this->insertSound($newSound);
         $newSoundId = $newSound->getId();
 
         rename($metadataAppliedSoundFilePath, $this->getFinalSoundFilePath($newSoundId));
@@ -80,26 +85,6 @@ class DefaultController extends FOSRestController
         unlink($uploadedSoundFilePath);
 
         return new View("sound added. Id: {$newSoundId}", Response::HTTP_CREATED);
-    }
-
-    private function createSound($category, $title, $length, $sequence) {
-        $sound = new Sound();
-        $sound->setCategory($category);
-        $sound->setTitle($title);
-        $sound->setLength($length);
-        $sound->setSeq($sequence);
-        return $sound;
-    }
-
-    private function getMetadataAppliedSoundFilePath() {
-        $soundStoragePath = $this->container->getParameter('sound_path');
-        $fileName = "temp.mp3";
-        return "{$soundStoragePath}{$fileName}";
-    }
-
-    private function getFinalSoundFilePath($id) {
-        $soundStoragePath = $this->container->getParameter('sound_path');
-        return "{$soundStoragePath}{$id}";
     }
 
     /**
@@ -117,6 +102,59 @@ class DefaultController extends FOSRestController
             $sn->flush();
         }
         return new View("deleted successfully", Response::HTTP_OK);
+    }
+
+    /**
+     *
+     *  Private functions
+     *
+     */
+
+    private  function normalize($uploadedSoundFilePath, $normalizedSoundFileName, SoundFileManipulatorFFMPEG $ffmpeg)
+    {
+        if(!$ffmpeg->normalize($uploadedSoundFilePath, $normalizedSoundFileName)) {
+            unlink($uploadedSoundFilePath);
+            unlink($normalizedSoundFileName);
+            return false;
+        }
+        return true;
+    }
+
+    private function setMetadata($normalizedSoundFileName, SoundFileMetadata $metaData, $metadataAppliedSoundFilePath, SoundFileManipulatorFFMPEG $ffmpeg)
+    {
+        if(!$ffmpeg->setMetadata($normalizedSoundFileName, $metaData, $metadataAppliedSoundFilePath)) {
+            unlink($normalizedSoundFileName);
+            unlink($metadataAppliedSoundFilePath);
+            return false;
+        }
+        return true;
+    }
+
+    private function createSound($category, $title, $length, $sequence) {
+        $sound = new Sound();
+        $sound->setCategory($category);
+        $sound->setTitle($title);
+        $sound->setLength($length);
+        $sound->setSeq($sequence);
+        return $sound;
+    }
+
+    private function insertSound(Sound &$sound)
+    {
+        $em = $this->getDoctrine()->getManager();
+        $em->persist($sound);
+        $em->flush();
+    }
+
+    private function getMetadataAppliedSoundFilePath() {
+        $soundStoragePath = $this->container->getParameter('sound_path');
+        $fileName = "temp.mp3";
+        return "{$soundStoragePath}{$fileName}";
+    }
+
+    private function getFinalSoundFilePath($id) {
+        $soundStoragePath = $this->container->getParameter('sound_path');
+        return "{$soundStoragePath}{$id}";
     }
 
     private function getNextSequenceValue()
