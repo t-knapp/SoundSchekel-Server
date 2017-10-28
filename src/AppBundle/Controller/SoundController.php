@@ -2,6 +2,7 @@
 
 namespace AppBundle\Controller;
 
+use AppBundle\Entity\Deletion;
 use AppBundle\Entity\Sequence;
 use AppBundle\Entity\Sound;
 use AppBundle\Repository\SequenceRepository;
@@ -14,7 +15,7 @@ use FOS\RestBundle\View\View;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use AppBundle\Service\SoundFileManipulatorFFMPEG;
 
-class DefaultController extends FOSRestController
+class SoundController extends FOSRestController
 {
     
     /**
@@ -98,6 +99,8 @@ class DefaultController extends FOSRestController
             return new View("sound not found", Response::HTTP_NOT_FOUND);
         }
         else {
+            $deletion = $this->createSoundDeletion($id);
+            $sn->persist($deletion);
             $sn->remove($sound);
             $sn->flush();
         }
@@ -109,6 +112,14 @@ class DefaultController extends FOSRestController
      *  Private functions
      *
      */
+
+    private function createSoundDeletion($soundId)
+    {
+        $deletion = new Deletion();
+        $deletion->setSoundId($soundId);
+        $deletion->setSeq($this->getNextSequenceValue());
+        return $deletion;
+    }
 
     private  function normalize($uploadedSoundFilePath, $normalizedSoundFileName, SoundFileManipulatorFFMPEG $ffmpeg)
     {

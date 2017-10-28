@@ -30,6 +30,13 @@ class Deletion
 
 
     /**
+     * @var int
+     *
+     * @ORM\Column(name="soundId", type="integer", unique=true)
+     */
+    private $soundId;
+
+    /**
      * Get id
      *
      * @return int
@@ -61,6 +68,22 @@ class Deletion
     public function getSeq()
     {
         return $this->seq;
+    }
+
+    /**
+     * @return int
+     */
+    public function getSoundId()
+    {
+        return $this->soundId;
+    }
+
+    /**
+     * @param int $soundId
+     */
+    public function setSoundId($soundId)
+    {
+        $this->soundId = $soundId;
     }
 }
 
